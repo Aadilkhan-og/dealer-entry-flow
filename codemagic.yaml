@@ -23,6 +23,10 @@ workflows:
           npx expo prebuild --platform android --clean
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
+          # Patch build tools version to use pre-installed 34.0.0 instead of 35
+          sed -i 's/buildToolsVersion = "35.0.0"/buildToolsVersion = "34.0.0"/g' android/build.gradle
+          sed -i 's/buildToolsVersion = "35"/buildToolsVersion = "34.0.0"/g' android/build.gradle
+
           # Generate a release keystore for signing
           keytool -genkey -v \
             -keystore android/app/release.keystore \
