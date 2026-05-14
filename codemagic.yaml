@@ -24,8 +24,21 @@ workflows:
         script: |
           npx expo prebuild --platform android --clean
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+
+          # Generate a release keystore for signing
+          keytool -genkey -v \
+            -keystore android/app/release.keystore \
+            -alias dealer-flow \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=DealerFlow,OU=Mobile,O=DealerFlow,L=Unknown,S=Unknown,C=IN" \
+            -storepass dealer123 -keypass dealer123
+
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=app/release.keystore \
+            -Pandroid.injected.signing.store.password=dealer123 \
+            -Pandroid.injected.signing.key.alias=dealer-flow \
+            -Pandroid.injected.signing.key.password=dealer123
     artifacts:
       - android/app/build/outputs/apk/**/*.apk
     publishing:
