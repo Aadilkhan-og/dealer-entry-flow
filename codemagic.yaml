@@ -9,10 +9,17 @@ workflows:
         EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodnZ0amR4ZW50Y25tdXV0eGV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTYyMzIsImV4cCI6MjA5NDMzMjIzMn0.jXSGUXHldUrrk-n5UvcXlaKnFfXdNPCoajpke60df2A
         EXPO_PUBLIC_OCR_SPACE_API_KEY: K84930280788957
     scripts:
-      - name: Install pnpm
-        script: npm install -g pnpm
+      - name: Install pnpm if missing
+        script: pnpm --version || npm install -g pnpm --force
       - name: Install dependencies
         script: pnpm install --ignore-scripts
+      - name: Write .env file
+        script: |
+          cat > .env << EOF
+          EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL
+          EXPO_PUBLIC_SUPABASE_ANON_KEY=$EXPO_PUBLIC_SUPABASE_ANON_KEY
+          EXPO_PUBLIC_OCR_SPACE_API_KEY=$EXPO_PUBLIC_OCR_SPACE_API_KEY
+          EOF
       - name: Set up local.properties
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
@@ -20,9 +27,9 @@ workflows:
         script: |
           npx expo prebuild --platform android --clean
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug
     artifacts:
-      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/apk/**/*.apk
     publishing:
       email:
         recipients:
