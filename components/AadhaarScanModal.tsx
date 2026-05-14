@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
+import * as Linking from "expo-linking";
 import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -172,9 +173,9 @@ export function AadhaarScanModal({ visible, onClose, onScanned }: Props) {
               <Text style={s.permBtnText}>Allow Camera</Text>
             </Pressable>
           ) : (
-            <Text style={[s.permText, { opacity: 0.7 }]}>
-              Please enable camera access in device Settings.
-            </Text>
+            <Pressable style={s.permBtn} onPress={() => Linking.openSettings()}>
+              <Text style={s.permBtnText}>Open Settings</Text>
+            </Pressable>
           )}
         </View>
       ) : (
