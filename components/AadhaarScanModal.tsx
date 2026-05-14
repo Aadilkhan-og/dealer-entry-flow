@@ -1,9 +1,10 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { Camera, CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import * as Linking from "expo-linking";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  AppState,
   Modal,
   Platform,
   Pressable,
@@ -29,6 +30,16 @@ export function AadhaarScanModal({ visible, onClose, onScanned }: Props) {
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
+
+  // Re-check permission when modal opens or app returns from Settings
+  useEffect(() => {
+    if (!visible) return;
+    requestPermission();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") requestPermission();
+    });
+    return () => sub.remove();
+  }, [visible]);
 
   async function handleCapture() {
     if (!cameraRef.current || processing) return;
