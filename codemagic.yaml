@@ -44,7 +44,7 @@ workflows:
 
           cd android
           ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=app/release.keystore \
+            -Pandroid.injected.signing.store.file=$(pwd)/app/release.keystore \
             -Pandroid.injected.signing.store.password=dealer123 \
             -Pandroid.injected.signing.key.alias=dealer-flow \
             -Pandroid.injected.signing.key.password=dealer123
