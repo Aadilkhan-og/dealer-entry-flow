@@ -20,12 +20,10 @@ workflows:
           EXPO_PUBLIC_SUPABASE_ANON_KEY=$EXPO_PUBLIC_SUPABASE_ANON_KEY
           EXPO_PUBLIC_OCR_SPACE_API_KEY=$EXPO_PUBLIC_OCR_SPACE_API_KEY
           EOF
-      - name: Set up local.properties
-        script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
       - name: Build APK
         script: |
           npx expo prebuild --platform android --clean
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
           cd android
           ./gradlew assembleDebug
     artifacts:
