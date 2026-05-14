@@ -10,7 +10,14 @@ workflows:
         EXPO_PUBLIC_OCR_SPACE_API_KEY: K84930280788957
     scripts:
       - name: Install dependencies
-        script: npm install --legacy-peer-deps
+        script: |
+          npm install --legacy-peer-deps
+          # Install react-compiler-runtime matching the version babel-preset-expo pulled in
+          COMPILER_VER=$(node -e "try{process.stdout.write(require('babel-plugin-react-compiler/package.json').version)}catch(e){}" 2>/dev/null)
+          if [ -n "$COMPILER_VER" ]; then
+            echo "Installing react-compiler-runtime@$COMPILER_VER"
+            npm install "react-compiler-runtime@$COMPILER_VER" --legacy-peer-deps --no-save
+          fi
       - name: Write .env file
         script: |
           cat > .env << EOF
