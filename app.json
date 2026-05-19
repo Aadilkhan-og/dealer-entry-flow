@@ -22,7 +22,6 @@
     },
     "android": {
       "package": "com.dealerflow.mobile",
-      "jsEngine": "jsc",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",

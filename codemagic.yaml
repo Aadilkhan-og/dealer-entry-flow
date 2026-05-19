@@ -18,25 +18,6 @@ workflows:
             echo "Installing react-compiler-runtime@$COMPILER_VER"
             npm install "react-compiler-runtime@$COMPILER_VER" --legacy-peer-deps --no-save
           fi
-
-          # react-native-worklets JSC fix for RN 0.81+: jsctooling target may be absent.
-          WORKLETS_CMAKE="node_modules/react-native-worklets/android/CMakeLists.txt"
-          if [ -f "$WORKLETS_CMAKE" ]; then
-          cat > /tmp/patch-worklets-cmake.cjs <<'NODE'
-          const fs = require("fs");
-          const path = process.argv[2];
-          const source = fs.readFileSync(path, "utf8");
-          const pattern = /elseif\(\$\{JS_RUNTIME\} STREQUAL "jsc"\)\n\s*if\(ReactAndroid_VERSION_MINOR GREATER_EQUAL 76\)\n\s*target_link_libraries\(worklets ReactAndroid::jsctooling\)\n\s*else\(\)\n\s*target_link_libraries\(worklets ReactAndroid::jscexecutor\)\n\s*endif\(\)\nendif\(\)/m;
-          const replacement = `elseif(\${JS_RUNTIME} STREQUAL "jsc")\n  if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 76)\n    if(TARGET ReactAndroid::jsctooling)\n      target_link_libraries(worklets ReactAndroid::jsctooling)\n    elseif(TARGET ReactAndroid::jscexecutor)\n      target_link_libraries(worklets ReactAndroid::jscexecutor)\n    else()\n      message(WARNING "worklets: missing ReactAndroid::jsctooling/jscexecutor for JSC; continuing without extra JSC tooling target")\n    endif()\n  else()\n    target_link_libraries(worklets ReactAndroid::jscexecutor)\n  endif()\nendif()`;
-          if (!pattern.test(source)) {
-            console.log("react-native-worklets CMake patch not needed or pattern not found");
-            process.exit(0);
-          }
-          fs.writeFileSync(path, source.replace(pattern, replacement));
-          console.log("Applied react-native-worklets JSC CMake compatibility patch");
-          NODE
-          node /tmp/patch-worklets-cmake.cjs "$WORKLETS_CMAKE"
-          fi
       - name: Write .env file
         script: |
           cat > .env << EOF
@@ -48,17 +29,6 @@ workflows:
         script: |
           npx expo prebuild --platform android --clean
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-
-          # Force JSC and disable Hermes to avoid Hermes parse failures from dynamic import output.
-          if [ -f android/gradle.properties ]; then
-            sed -i 's/^expo\.jsEngine=.*/expo.jsEngine=jsc/g' android/gradle.properties
-            sed -i 's/^hermesEnabled=.*/hermesEnabled=false/g' android/gradle.properties
-            grep -q '^expo\.jsEngine=' android/gradle.properties || echo 'expo.jsEngine=jsc' >> android/gradle.properties
-            grep -q '^hermesEnabled=' android/gradle.properties || echo 'hermesEnabled=false' >> android/gradle.properties
-
-            echo "Configured Android JS engine flags:"
-            grep -E '^(expo\.jsEngine|hermesEnabled)=' android/gradle.properties || true
-          fi
 
           # Patch build tools version to use pre-installed 34.0.0 instead of 35
           sed -i 's/buildToolsVersion = "35.0.0"/buildToolsVersion = "34.0.0"/g' android/build.gradle
@@ -74,8 +44,6 @@ workflows:
 
           cd android
           ./gradlew assembleRelease \
-            -Pexpo.jsEngine=jsc \
-            -PhermesEnabled=false \
             -Pandroid.injected.signing.store.file=$(pwd)/app/release.keystore \
             -Pandroid.injected.signing.store.password=dealer123 \
             -Pandroid.injected.signing.key.alias=dealer-flow \
