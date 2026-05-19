@@ -22,6 +22,7 @@
     },
     "android": {
       "package": "com.dealerflow.mobile",
+      "jsEngine": "jsc",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -64,7 +65,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "7a9b98e1-72fd-4a02-b685-dabd9fe2531e"
+        "projectId": "d84e9a32-b819-4a20-bdf4-72e447999cc2"
       }
     },
     "owner": "aadilkhan"
