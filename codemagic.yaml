@@ -18,6 +18,25 @@ workflows:
             echo "Installing react-compiler-runtime@$COMPILER_VER"
             npm install "react-compiler-runtime@$COMPILER_VER" --legacy-peer-deps --no-save
           fi
+
+          # react-native-worklets JSC fix for RN 0.81+: jsctooling target may be absent.
+          WORKLETS_CMAKE="node_modules/react-native-worklets/android/CMakeLists.txt"
+          if [ -f "$WORKLETS_CMAKE" ]; then
+            cat > /tmp/patch-worklets-cmake.cjs <<'NODE'
+            const fs = require("fs");
+            const path = process.argv[2];
+            const source = fs.readFileSync(path, "utf8");
+            const pattern = /elseif\(\$\{JS_RUNTIME\} STREQUAL "jsc"\)\n\s*if\(ReactAndroid_VERSION_MINOR GREATER_EQUAL 76\)\n\s*target_link_libraries\(worklets ReactAndroid::jsctooling\)\n\s*else\(\)\n\s*target_link_libraries\(worklets ReactAndroid::jscexecutor\)\n\s*endif\(\)\nendif\(\)/m;
+            const replacement = `elseif(\${JS_RUNTIME} STREQUAL "jsc")\n  if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 76)\n    if(TARGET ReactAndroid::jsctooling)\n      target_link_libraries(worklets ReactAndroid::jsctooling)\n    elseif(TARGET ReactAndroid::jscexecutor)\n      target_link_libraries(worklets ReactAndroid::jscexecutor)\n    else()\n      message(WARNING "worklets: missing ReactAndroid::jsctooling/jscexecutor for JSC; continuing without extra JSC tooling target")\n    endif()\n  else()\n    target_link_libraries(worklets ReactAndroid::jscexecutor)\n  endif()\nendif()`;
+            if (!pattern.test(source)) {
+              console.log("react-native-worklets CMake patch not needed or pattern not found");
+              process.exit(0);
+            }
+            fs.writeFileSync(path, source.replace(pattern, replacement));
+            console.log("Applied react-native-worklets JSC CMake compatibility patch");
+            NODE
+            node /tmp/patch-worklets-cmake.cjs "$WORKLETS_CMAKE"
+          fi
       - name: Write .env file
         script: |
           cat > .env << EOF
