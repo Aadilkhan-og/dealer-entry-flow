@@ -3,13 +3,21 @@ const path = require("path");
 
 const config = getDefaultConfig(__dirname);
 
-// Stub out @opentelemetry/api — it uses dynamic import() which Hermes can't compile.
-// Supabase pulls this in transitively; we don't use it at runtime.
+const emptyModule = path.resolve(__dirname, "_empty-module.js");
+
+// Use resolveRequest (not extraNodeModules) to properly override @opentelemetry/* modules.
+// extraNodeModules only adds lookup paths; resolveRequest intercepts every resolution.
+// @opentelemetry/api uses dynamic import() which Hermes cannot compile — stub it out.
 config.resolver = {
   ...(config.resolver || {}),
-  extraNodeModules: {
-    ...(config.resolver?.extraNodeModules || {}),
-    "@opentelemetry/api": path.resolve(__dirname, "_empty-module.js"),
+  resolveRequest: (context, moduleName, platform) => {
+    if (
+      moduleName === "@opentelemetry/api" ||
+      moduleName.startsWith("@opentelemetry/")
+    ) {
+      return { type: "sourceFile", filePath: emptyModule };
+    }
+    return context.resolveRequest(context, moduleName, platform);
   },
 };
 
