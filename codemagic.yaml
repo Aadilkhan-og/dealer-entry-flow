@@ -30,6 +30,17 @@ workflows:
           npx expo prebuild --platform android --clean
           echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
+          # Force JSC and disable Hermes to avoid Hermes parse failures from dynamic import output.
+          if [ -f android/gradle.properties ]; then
+            sed -i 's/^expo\.jsEngine=.*/expo.jsEngine=jsc/g' android/gradle.properties
+            sed -i 's/^hermesEnabled=.*/hermesEnabled=false/g' android/gradle.properties
+            grep -q '^expo\.jsEngine=' android/gradle.properties || echo 'expo.jsEngine=jsc' >> android/gradle.properties
+            grep -q '^hermesEnabled=' android/gradle.properties || echo 'hermesEnabled=false' >> android/gradle.properties
+
+            echo "Configured Android JS engine flags:"
+            grep -E '^(expo\.jsEngine|hermesEnabled)=' android/gradle.properties || true
+          fi
+
           # Patch build tools version to use pre-installed 34.0.0 instead of 35
           sed -i 's/buildToolsVersion = "35.0.0"/buildToolsVersion = "34.0.0"/g' android/build.gradle
           sed -i 's/buildToolsVersion = "35"/buildToolsVersion = "34.0.0"/g' android/build.gradle
@@ -44,6 +55,8 @@ workflows:
 
           cd android
           ./gradlew assembleRelease \
+            -Pexpo.jsEngine=jsc \
+            -PhermesEnabled=false \
             -Pandroid.injected.signing.store.file=$(pwd)/app/release.keystore \
             -Pandroid.injected.signing.store.password=dealer123 \
             -Pandroid.injected.signing.key.alias=dealer-flow \
