@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -17,12 +18,14 @@ import {
 import Animated, {
   FadeInDown,
   FadeInUp,
+  FadeOutLeft,
   Layout,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 import {
+  deletePurchaseRecord,
   getPurchaseRecords,
   PurchaseRecordRow,
 } from "@/services/databaseService";
@@ -30,21 +33,19 @@ import {
 function RecordCard({
   item,
   index,
+  onPress,
+  onDelete,
 }: {
   item: PurchaseRecordRow;
   index: number;
+  onPress: () => void;
+  onDelete: () => void;
 }) {
   const colors = useColors();
-  const isDark = useColorScheme() === "dark";
 
   const cardShadow = Platform.select({
-    ios: {
-      shadowColor: isDark ? "#000" : "#4F46E5",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: isDark ? 0.3 : 0.06,
-      shadowRadius: 10,
-    },
-    android: { elevation: 2 },
+    ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 10 },
+    android: { elevation: 3 },
     default: {},
   });
 
@@ -52,9 +53,14 @@ function RecordCard({
     day: "2-digit",
     month: "short",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   });
+
+  const initials = item.customer_name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 
   const s = StyleSheet.create({
     card: {
@@ -147,54 +153,63 @@ function RecordCard({
   return (
     <Animated.View
       entering={FadeInDown.delay(index * 60).springify().damping(16)}
+      exiting={FadeOutLeft.duration(300)}
       layout={Layout.springify()}
+      style={{ marginHorizontal: 16, marginBottom: 12 }}
     >
-      <View style={s.card}>
-        <View style={s.accent} />
-        <View style={s.body}>
-          <View style={s.topRow}>
-            <Text style={s.name} numberOfLines={1}>
-              {item.customer_name}
-            </Text>
-            <View style={s.dateBadge}>
-              <Text style={s.dateText}>{date.split(",")[0]}</Text>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [{
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.border,
+          overflow: "hidden",
+          opacity: pressed ? 0.92 : 1,
+        }, cardShadow]}
+      >
+        <LinearGradient colors={[colors.gradientStart, colors.gradientEnd]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 3 }} />
+        <View style={{ padding: 16 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 14 }}>
+            <LinearGradient colors={[colors.gradientStart, colors.gradientEnd]} style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{initials}</Text>
+            </LinearGradient>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: "700", color: colors.foreground }} numberOfLines={1}>{item.customer_name}</Text>
+              <Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 1 }}>{date}</Text>
             </View>
+            <Pressable onPress={onDelete} hitSlop={10} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(220,38,38,0.1)", alignItems: "center", justifyContent: "center" }}>
+              <Feather name="trash-2" size={15} color={colors.destructive} />
+            </Pressable>
           </View>
-
-          <View style={s.row}>
-            <View style={s.field}>
-              <Text style={s.label}>Phone</Text>
-              <Text style={s.value}>{item.phone_number}</Text>
-            </View>
-            <View style={s.field}>
-              <Text style={s.label}>Aadhaar</Text>
-              <Text style={s.value} numberOfLines={1}>
-                {item.aadhaar_number || "—"}
-              </Text>
-            </View>
+          <View style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
+            {[{ icon: "smartphone", label: "Phone", value: item.phone_number }, { icon: "hash", label: "IMEI", value: item.imei }].map(({ icon, label, value }) => (
+              <View key={label} style={{ flex: 1, backgroundColor: colors.muted, borderRadius: 10, padding: 10 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 3 }}>
+                  <Feather name={icon as any} size={11} color={colors.mutedForeground} />
+                  <Text style={{ fontSize: 10, fontWeight: "700", color: colors.mutedForeground, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</Text>
+                </View>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: colors.foreground }} numberOfLines={1}>{value || "—"}</Text>
+              </View>
+            ))}
           </View>
-
-          <View style={s.field}>
-            <Text style={s.label}>IMEI</Text>
-            <Text style={s.value}>{item.imei}</Text>
-          </View>
-
-          <View style={s.divider} />
-
-          <View style={s.footer}>
-            <Text style={[s.label, { margin: 0 }]}>{date}</Text>
-            <View style={{ flex: 1 }} />
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             {item.receipt_url ? (
-              <View style={s.receiptBadge}>
-                <Feather name="file-text" size={11} color={colors.successForeground} />
-                <Text style={s.receiptText}>Receipt saved</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.successLight, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Feather name="check-circle" size={11} color={colors.success} />
+                <Text style={{ fontSize: 11, fontWeight: "600", color: colors.successForeground }}>Receipt saved</Text>
               </View>
             ) : (
-              <Text style={s.noReceiptText}>No receipt</Text>
+              <Text style={{ fontSize: 11, color: colors.mutedForeground }}>No receipt</Text>
             )}
+            <View style={{ flex: 1 }} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Text style={{ fontSize: 12, color: colors.primary, fontWeight: "600" }}>View Details</Text>
+              <Feather name="chevron-right" size={13} color={colors.primary} />
+            </View>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -280,6 +295,28 @@ export default function HistoryScreen() {
     await loadRecords();
     setRefreshing(false);
   }
+
+  function handleDelete(item: PurchaseRecordRow) {
+    Alert.alert(
+      "Delete Record",
+      `Delete ${item.customer_name}'s record? This cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deletePurchaseRecord(item.id);
+              setRecords((prev) => prev.filter((r) => r.id !== item.id));
+            } catch {
+              Alert.alert("Error", "Failed to delete record.");
+            }
+          },
+        },
+      ]
+    );
+ }
 
   const filtered = search.trim()
     ? records.filter(
@@ -431,7 +468,12 @@ export default function HistoryScreen() {
             filtered.length === 0 && { flex: 1 },
           ]}
           renderItem={({ item, index }) => (
-            <RecordCard item={item} index={index} />
+            <RecordCard
+              item={item}
+              index={index}
+              onPress={() => router.push(`/device/${item.id}` as any)}
+              onDelete={() => handleDelete(item)}
+            />
           )}
           ListEmptyComponent={<EmptyState colors={colors} />}
           refreshControl={

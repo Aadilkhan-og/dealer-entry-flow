@@ -1,80 +1,80 @@
 const colors = {
   light: {
-    text: "#1E1B4B",
-    tint: "#4F46E5",
+    text: "#091413",
+    tint: "#408A71",
 
-    background: "#F5F3FF",
-    foreground: "#1E1B4B",
+    background: "#F0FAF5",
+    foreground: "#091413",
 
     card: "#FFFFFF",
-    cardForeground: "#1E1B4B",
+    cardForeground: "#091413",
 
-    primary: "#4F46E5",
+    primary: "#408A71",
     primaryForeground: "#FFFFFF",
-    primaryLight: "#EEF2FF",
+    primaryLight: "#B0E4CC",
 
-    secondary: "#EEF2FF",
-    secondaryForeground: "#3730A3",
+    secondary: "#285A48",
+    secondaryForeground: "#FFFFFF",
 
-    muted: "#F3F4F6",
-    mutedForeground: "#6B7280",
+    muted: "#E8F5EE",
+    mutedForeground: "#5A7A6E",
 
-    accent: "#EEF2FF",
-    accentForeground: "#4F46E5",
+    accent: "#B0E4CC",
+    accentForeground: "#091413",
 
     destructive: "#DC2626",
     destructiveForeground: "#FFFFFF",
 
-    border: "#DDD6FE",
-    input: "#E9E6FF",
+    border: "#B0E4CC",
+    input: "#E8F5EE",
 
-    success: "#059669",
-    successLight: "#D1FAE5",
-    successForeground: "#065F46",
+    success: "#285A48",
+    successLight: "#B0E4CC",
+    successForeground: "#FFFFFF",
 
-    gradientStart: "#4F46E5",
-    gradientEnd: "#7C3AED",
+    gradientStart: "#285A48",
+    gradientEnd: "#408A71",
 
-    surfaceHighlight: "rgba(79,70,229,0.06)",
+    surfaceHighlight: "rgba(64,138,113,0.08)",
   },
 
   dark: {
-    text: "#F1F5F9",
-    tint: "#818CF8",
+    text: "#B0E4CC",
+    tint: "#408A71",
 
-    background: "#0D0D1E",
-    foreground: "#F1F5F9",
+    background: "#091413",
+    foreground: "#B0E4CC",
 
-    card: "#161629",
-    cardForeground: "#F1F5F9",
+    card: "#0F1F1C",
+    cardForeground: "#B0E4CC",
 
-    primary: "#818CF8",
-    primaryForeground: "#1E1B4B",
-    primaryLight: "#1E1B4B",
+    primary: "#408A71",
+    primaryForeground: "#FFFFFF",
+    primaryLight: "#285A48",
 
-    secondary: "#1E1B4B",
-    secondaryForeground: "#A5B4FC",
+    secondary: "#285A48",
+    secondaryForeground: "#B0E4CC",
 
-    muted: "#1A1A30",
-    mutedForeground: "#94A3B8",
+    muted: "#0F1F1C",
+    mutedForeground: "#6BA58C",
 
-    accent: "#1E1B4B",
-    accentForeground: "#818CF8",
+    accent: "#285A48",
+    accentForeground: "#B0E4CC",
 
     destructive: "#EF4444",
     destructiveForeground: "#FFFFFF",
 
-    border: "#2A2750",
-    input: "#1E1B4B",
+    border: "#1E3D32",
+    input: "#0F1F1C",
 
-    success: "#34D399",
-    successLight: "#022C22",
-    successForeground: "#D1FAE5",
+    success: "#408A71",
+    successLight: "#1A3328",
+    successForeground: "#B0E4CC",
 
-    gradientStart: "#4338CA",
-    gradientEnd: "#6D28D9",
+    gradientStart: "#091413",
+    gradientEnd: "#285A48",
 
-    surfaceHighlight: "rgba(129,140,248,0.08)",
+    surfaceHighlight: "rgba(64,138,113,0.12)",
   },
 
   radius: 14,

@@ -31,6 +31,13 @@ function RootLayoutNav() {
           animation: "slide_from_right",
         }}
       />
+      <Stack.Screen
+        name="device/[id]"
+        options={{
+          headerShown: false,
+          animation: "slide_from_right",
+        }}
+      />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   );

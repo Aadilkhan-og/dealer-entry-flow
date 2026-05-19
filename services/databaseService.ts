@@ -36,3 +36,35 @@ export async function getPurchaseRecords(): Promise<PurchaseRecordRow[]> {
   if (error) throw new Error(`Failed to load records: ${error.message}`);
   return (data ?? []) as PurchaseRecordRow[];
 }
+
+export async function getPurchaseRecord(id: string): Promise<PurchaseRecordRow> {
+  const { data, error } = await supabase
+    .from("purchase_records")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw new Error(`Failed to load record: ${error.message}`);
+  return data as PurchaseRecordRow;
+}
+
+export async function updatePurchaseRecord(
+  id: string,
+  record: Partial<PurchaseRecord>
+): Promise<void> {
+  const { error } = await supabase
+    .from("purchase_records")
+    .update(record)
+    .eq("id", id);
+
+  if (error) throw new Error(`Failed to update record: ${error.message}`);
+}
+
+export async function deletePurchaseRecord(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("purchase_records")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(`Failed to delete record: ${error.message}`);
+}
