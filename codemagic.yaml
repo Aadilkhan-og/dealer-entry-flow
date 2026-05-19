@@ -18,16 +18,12 @@ workflows:
             echo "Installing react-compiler-runtime@$COMPILER_VER"
             npm install "react-compiler-runtime@$COMPILER_VER" --legacy-peer-deps --no-save
           fi
-          # hermesc (Hermes bytecode compiler) cannot parse block comments inside
-          # import() arguments. @supabase/supabase-js ships pre-compiled dist files
-          # containing `import(/* webpackIgnore: true */ '@opentelemetry/api')`.
-          # Strip the comment so hermesc sees `import('@opentelemetry/api')` which
-          # it can parse. The @opentelemetry/api module itself is stubbed by metro.config.js.
-          OTEL_FILES=$(grep -rl "webpackIgnore" node_modules/@supabase/ 2>/dev/null || true)
-          if [ -n "$OTEL_FILES" ]; then
-            echo "$OTEL_FILES" | xargs sed -i '' 's|/\* webpackIgnore: true \*/ ||g'
-            echo "Stripped webpackIgnore magic comments from supabase dist files"
-          fi
+          # hermesc cannot parse block comments inside import() arguments.
+          # Strip '/* webpackIgnore: true */' from ALL node_modules (not just @supabase —
+          # the offending file may live in any transitive dependency).
+          grep -rl "webpackIgnore" node_modules/ 2>/dev/null | \
+            xargs perl -pi -e 's{/\* webpackIgnore: true \*/\s*}{}g' 2>/dev/null || true
+          echo "Stripped webpackIgnore magic comments from node_modules"
       - name: Write .env file
         script: |
           cat > .env << EOF

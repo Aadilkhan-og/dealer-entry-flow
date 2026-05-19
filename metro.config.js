@@ -41,4 +41,28 @@ config.resolver = {
   },
 };
 
+// Last-resort: wrap the Expo serializer to strip webpack magic comments from the
+// final bundle TEXT before it is written to disk and passed to hermesc.
+// hermesc cannot parse:  import(/* webpackIgnore: true */ 'mod')
+// After stripping:       import('mod')  <- hermesc handles this fine.
+const _origSerializer =
+  config.serializer &&
+  typeof config.serializer.customSerializer === "function"
+    ? config.serializer.customSerializer
+    : null;
+
+if (_origSerializer) {
+  config.serializer = {
+    ...config.serializer,
+    customSerializer: async (...args) => {
+      const bundle = await _origSerializer(...args);
+      if (typeof bundle === "string") {
+        // Strip any /* webpackIgnore ... */ comment inside an import() call.
+        return bundle.replace(/\/\*\s*webpackIgnore[^*]*\*\/\s*/g, "");
+      }
+      return bundle;
+    },
+  };
+}
+
 module.exports = config;
