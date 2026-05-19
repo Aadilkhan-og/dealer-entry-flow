@@ -14,6 +14,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useRequestPermissions } from "@/hooks/useRequestPermissions";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,6 +37,8 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  useRequestPermissions(); // Request all permissions upfront on first launch
+
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,

@@ -11,8 +11,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from "react-native";import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 import { extractAadhaarInfo } from "@/services/ocrService";
@@ -170,24 +169,22 @@ export function AadhaarScanModal({ visible, onClose, onScanned }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      {!permission ? (
+      {!permission?.granted ? (
         <View style={s.permContainer}>
-          <ActivityIndicator color="#fff" size="large" />
-        </View>
-      ) : !permission.granted ? (
-        <View style={s.permContainer}>
+          <ActivityIndicator color="#fff" size="large" style={{ marginBottom: 20 }} />
           <Text style={s.permText}>
             Camera permission is required to scan the Aadhaar card.
           </Text>
-          {permission.canAskAgain ? (
-            <Pressable style={s.permBtn} onPress={requestPermission}>
-              <Text style={s.permBtnText}>Allow Camera</Text>
-            </Pressable>
-          ) : (
-            <Pressable style={s.permBtn} onPress={() => Linking.openSettings()}>
-              <Text style={s.permBtnText}>Open Settings</Text>
-            </Pressable>
-          )}
+          <Pressable
+            style={s.permBtn}
+            onPress={() =>
+              permission?.canAskAgain ? requestPermission() : Linking.openSettings()
+            }
+          >
+            <Text style={s.permBtnText}>
+              {permission?.canAskAgain ? "Allow Camera" : "Open Settings"}
+            </Text>
+          </Pressable>
         </View>
       ) : (
         <View style={s.overlay}>
